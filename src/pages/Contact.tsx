@@ -1,6 +1,7 @@
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 import { Phone, MapPin, Clock } from 'lucide-react';
+import exteriorImg from '@/assets/restaurant-exterior.jpg';
 
 const Contact = () => (
   <>
@@ -29,16 +30,8 @@ const Contact = () => (
           </div>
         </AnimatedSection>
         <AnimatedSection delay={0.2}>
-          <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-            <div className="flex h-64 items-center justify-center bg-muted md:h-80">
-              <div className="text-center p-6">
-                <MapPin className="mx-auto h-12 w-12 text-primary" />
-                <p className="mt-4 font-display text-lg font-semibold text-foreground">Notre Emplacement</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Carrefour Doto Pierre, en direction de la mairie
-                </p>
-              </div>
-            </div>
+          <div className="overflow-hidden rounded-lg border border-border shadow-sm">
+            <img src={exteriorImg} alt="Restaurant La Cave du Roi" className="h-64 w-full object-cover md:h-80" />
           </div>
         </AnimatedSection>
       </div>

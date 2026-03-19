@@ -4,6 +4,7 @@ import { Menu, X, ShoppingCart } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import logoImg from '@/assets/logo.jpg';
 
 const navLinks = [
   { to: '/', label: 'Accueil' },
@@ -24,11 +25,11 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="container-custom flex h-16 items-center justify-between">
-        <Link to="/" className="font-display text-xl font-bold text-primary md:text-2xl">
-          La Cave du Roi
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logoImg} alt="La Cave du Roi" className="h-10 w-10 rounded-full object-cover" />
+          <span className="font-display text-xl font-bold text-primary md:text-2xl">La Cave du Roi</span>
         </Link>
 
-        {/* Desktop nav */}
         <nav className="hidden items-center gap-1 lg:flex">
           {navLinks.map((l) => (
             <Link
@@ -55,14 +56,12 @@ const Header = () => {
               )}
             </Button>
           </Link>
-
           <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-2 text-foreground">
             {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile nav */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.nav
