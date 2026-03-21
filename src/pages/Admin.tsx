@@ -5,8 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff } from 'lucide-react';
+import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff, FileText, Ticket } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
+import OrderDetailsModal from '@/components/OrderDetailsModal';
+import AdvancedStats from '@/components/AdvancedStats';
+import CouponManagement from '@/components/CouponManagement';
 
 type Order = Tables<'orders'>;
 type MenuItemDB = Tables<'menu_items'>;
@@ -25,11 +28,13 @@ const statusColors: Record<string, string> = {
 
 const Admin = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'orders' | 'menu' | 'events' | 'stats'>('orders');
+  const [tab, setTab] = useState<'orders' | 'menu' | 'events' | 'stats' | 'coupons'>('orders');
   const [orders, setOrders] = useState<Order[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemDB[]>([]);
   const [events, setEvents] = useState<EventDB[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Menu form
   const [menuForm, setMenuForm] = useState({ name: '', description: '', price: '', category: 'specialites', image_url: '' });
@@ -169,6 +174,7 @@ const Admin = () => {
             { key: 'orders', icon: Package, label: 'Commandes' },
             { key: 'menu', icon: UtensilsCrossed, label: 'Menu' },
             { key: 'events', icon: CalendarDays, label: 'Événements' },
+            { key: 'coupons', icon: Ticket, label: 'Coupons' },
             { key: 'stats', icon: BarChart3, label: 'Statistiques' },
           ] as const).map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${tab === t.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-muted/80'}`}>
@@ -196,12 +202,19 @@ const Admin = () => {
                     <p className="text-xs mt-1">{order.payment_status === 'paye' ? '💰 Payé' : '⏳ Paiement en attente'}</p>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   {(['en_attente', 'en_preparation', 'livree'] as const).map((s) => (
                     <button key={s} onClick={() => updateOrderStatus(order.id, s)} disabled={order.status === s} className={`rounded px-3 py-1 text-xs font-medium transition-colors ${order.status === s ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-muted'}`}>
                       {statusLabels[s]}
                     </button>
                   ))}
+                  <button 
+                    onClick={() => { setSelectedOrderId(order.id); setIsModalOpen(true); }}
+                    className="ml-auto rounded px-3 py-1 text-xs font-medium border border-border hover:bg-muted flex items-center gap-1"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Détails
+                  </button>
                 </div>
               </div>
             ))}
@@ -289,28 +302,24 @@ const Admin = () => {
           </div>
         )}
 
+        {/* Coupons */}
+        {tab === 'coupons' && (
+          <CouponManagement />
+        )}
+
         {/* Stats */}
         {tab === 'stats' && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">Total commandes</p>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">{orders.length}</p>
-            </div>
-            <div className="rounded-lg border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">Commandes aujourd'hui</p>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">{todayOrders.length}</p>
-            </div>
-            <div className="rounded-lg border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">Revenus (payés)</p>
-              <p className="mt-2 font-display text-3xl font-bold text-accent">{totalRevenue.toLocaleString('fr-FR')} FCFA</p>
-            </div>
-            <div className="rounded-lg border border-border bg-card p-6 text-center">
-              <p className="text-sm text-muted-foreground">En attente</p>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">{orders.filter((o) => o.status === 'en_attente').length}</p>
-            </div>
-          </div>
+          <AdvancedStats />
         )}
       </div>
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal 
+        orderId={selectedOrderId}
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setSelectedOrderId(null); }}
+        onUpdate={fetchOrders}
+      />
     </div>
   );
 };
