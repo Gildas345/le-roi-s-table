@@ -126,10 +126,14 @@ export type Database = {
           customer_name: string
           delivery_mode: string
           id: string
+          notes: string | null
+          payment_date: string | null
+          payment_method: string | null
           payment_status: string
           phone: string
           status: string
           total_price: number
+          transaction_id: string | null
         }
         Insert: {
           address?: string | null
@@ -137,10 +141,14 @@ export type Database = {
           customer_name: string
           delivery_mode: string
           id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
           payment_status?: string
           phone: string
           status?: string
           total_price: number
+          transaction_id?: string | null
         }
         Update: {
           address?: string | null
@@ -148,10 +156,14 @@ export type Database = {
           customer_name?: string
           delivery_mode?: string
           id?: string
+          notes?: string | null
+          payment_date?: string | null
+          payment_method?: string | null
           payment_status?: string
           phone?: string
           status?: string
           total_price?: number
+          transaction_id?: string | null
         }
         Relationships: []
       }
