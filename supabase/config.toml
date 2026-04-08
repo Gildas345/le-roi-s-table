@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.mobile-money-pay]
 verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.send-sms]
+verify_jwt = false
+
+[functions.create-admin]
+verify_jwt = false
