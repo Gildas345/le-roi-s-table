@@ -64,6 +64,15 @@ const Commande = () => {
         await supabase.from('order_items').insert(itemsToCreate);
       }
 
+      // Send notifications (email + SMS) - fire and forget
+      supabase.functions.invoke('send-email', {
+        body: { order_id: orderId, type: 'new_order' },
+      }).catch(err => console.warn('Email notification failed:', err));
+
+      supabase.functions.invoke('send-sms', {
+        body: { order_id: orderId, type: 'new_order', phone_number: form.phone },
+      }).catch(err => console.warn('SMS notification failed:', err));
+
       // Handle payment
       if (paymentMethod === 'cash') {
         toast.success('Commande enregistrée ! Paiement en espèces à la livraison.');
