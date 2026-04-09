@@ -9,7 +9,7 @@ import logoImg from '@/assets/logo.jpg';
 const navLinks = [
   { to: '/', label: 'Accueil' },
   { to: '/specialites', label: 'Nos Spécialités' },
-  { to: '/plats-rapides', label: 'Plats Rapides' },
+  
   { to: '/accompagnements', label: 'Accompagnements' },
   { to: '/boissons', label: 'Boissons' },
   { to: '/cave-a-vin', label: 'Cave à Vin' },

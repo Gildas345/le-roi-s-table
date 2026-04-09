@@ -7,7 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Specialites from "./pages/Specialites";
-import PlatsRapides from "./pages/PlatsRapides";
+
 import Accompagnements from "./pages/Accompagnements";
 import Boissons from "./pages/Boissons";
 import CaveAVin from "./pages/CaveAVin";
@@ -34,7 +34,7 @@ const App = () => (
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
               <Route path="/specialites" element={<Specialites />} />
-              <Route path="/plats-rapides" element={<PlatsRapides />} />
+              
               <Route path="/accompagnements" element={<Accompagnements />} />
               <Route path="/boissons" element={<Boissons />} />
               <Route path="/cave-a-vin" element={<CaveAVin />} />
