@@ -17,10 +17,14 @@ import bissapImg from '@/assets/jus-bissap.jpg';
 import gingembreImg from '@/assets/jus-gingembre.jpg';
 import cocaImg from '@/assets/coca-cola.jpg';
 import eauImg from '@/assets/eau-minerale.jpg';
-import margauxImg from '@/assets/chateau-margaux.jpg';
-import roseImg from '@/assets/rose-provence.jpg';
-import chardonnayImg from '@/assets/chardonnay.jpg';
-import merlotImg from '@/assets/merlot-rouge.jpg';
+import cavesRoyalesImg from '@/assets/caves-royales.jpg';
+import foiDuPapeImg from '@/assets/foi-du-pape.jpg';
+import domaineMajesteImg from '@/assets/domaine-majeste.jpg';
+import chValacImg from '@/assets/ch-valac.jpg';
+import chateauLionImg from '@/assets/chateau-lion-vaillant.jpg';
+import grandVersantImg from '@/assets/grand-versant.jpg';
+import chantecailleImg from '@/assets/chantecaille.jpg';
+import tresorArcadesImg from '@/assets/tresor-des-arcades.jpg';
 
 export interface MenuVariant {
   label: string;
@@ -79,10 +83,14 @@ export const menuItems: MenuItem[] = [
   { id: 'b4', name: 'Eau Minérale', description: 'Eau minérale naturelle 1.5L', price: 500, image: eauImg, category: 'boissons', available: true },
 
   // VINS
-  { id: 'v1', name: 'Château Margaux 2015', description: 'Grand cru classé, Bordeaux - notes de fruits noirs et épices', price: 45000, image: margauxImg, category: 'vins', available: true },
-  { id: 'v2', name: 'Rosé de Provence', description: 'Rosé frais et fruité, parfait pour accompagner les grillades', price: 12000, image: roseImg, category: 'vins', available: true },
-  { id: 'v3', name: 'Chardonnay', description: 'Vin blanc sec aux arômes de fruits tropicaux', price: 8000, image: chardonnayImg, category: 'vins', available: true },
-  { id: 'v4', name: 'Merlot Rouge', description: 'Vin rouge souple et velouté, idéal avec viandes', price: 10000, image: merlotImg, category: 'vins', available: true },
+  { id: 'v1', name: 'Les Caves Royales', description: 'Bordeaux AOC 2020 — Vin rouge d\'exception, notes de fruits noirs et épices', price: 6000, image: cavesRoyalesImg, category: 'vins', available: true },
+  { id: 'v2', name: 'La Foi du Pâpe', description: 'Bordeaux AOC — Vin rouge puissant et élégant, aux arômes complexes', price: 7000, image: foiDuPapeImg, category: 'vins', available: true },
+  { id: 'v3', name: 'Domaine Majesté', description: 'Vin Rouge Moelleux — Vinification ancestrale, vin de prestige', price: 4000, image: domaineMajesteImg, category: 'vins', available: true },
+  { id: 'v4', name: 'CH Valac', description: 'Cuvée Spéciale Moelleux — Vin blanc doux et fruité', price: 4000, image: chValacImg, category: 'vins', available: true },
+  { id: 'v5', name: 'Château Lion Vaillant', description: 'Grande Réserve — Vin traditionnel, mis en bouteille au château', price: 7000, image: chateauLionImg, category: 'vins', available: true },
+  { id: 'v6', name: 'Grand Versant', description: 'Vin blanc doux et soyeux — Une œuvre d\'art qui se déguste', price: 4000, image: grandVersantImg, category: 'vins', available: true },
+  { id: 'v7', name: 'Chantecaille', description: 'Bordeaux AOP 2022 — Depuis 1840, un classique intemporel', price: 7000, image: chantecailleImg, category: 'vins', available: true },
+  { id: 'v8', name: 'Trésor des Arcades', description: 'Bordeaux Supérieur AOC 2022 — Grand vin de Bordeaux, 14% vol.', price: 8000, image: tresorArcadesImg, category: 'vins', available: true },
 ];
 
 export const getMenuByCategory = (category: MenuItem['category']) =>
