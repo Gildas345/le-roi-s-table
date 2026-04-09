@@ -2,7 +2,7 @@ import PageHeader from '@/components/PageHeader';
 import MenuCard from '@/components/MenuCard';
 import { getMenuByCategory } from '@/data/menuData';
 import AnimatedSection from '@/components/AnimatedSection';
-import caveImg from '@/assets/cave-a-vin.jpg';
+import terrasseImg from '@/assets/terrasse.jpg';
 
 const CaveAVin = () => {
   const items = getMenuByCategory('vins');
@@ -13,7 +13,7 @@ const CaveAVin = () => {
         <div className="container-custom">
           <AnimatedSection>
             <div className="mb-10 overflow-hidden rounded-lg">
-              <img src={caveImg} alt="Notre cave à vin" className="h-64 w-full object-cover md:h-80" />
+              <img src={terrasseImg} alt="Notre terrasse" className="h-64 w-full object-cover md:h-80" />
             </div>
           </AnimatedSection>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -4,6 +4,8 @@ import { ArrowRight, UtensilsCrossed, Wine, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AnimatedSection from '@/components/AnimatedSection';
 import heroBg from '@/assets/hero-bg.jpg';
+import fondateurImg from '@/assets/fondateur.jpg';
+import terrasseImg from '@/assets/terrasse.jpg';
 
 const features = [
   { icon: UtensilsCrossed, title: 'Cuisine Authentique', desc: 'Des plats préparés avec des ingrédients frais et locaux' },
@@ -68,6 +70,48 @@ const Index = () => (
             </div>
           </AnimatedSection>
         ))}
+      </div>
+    </section>
+
+    {/* Notre Histoire */}
+    <section className="section-padding bg-muted/30">
+      <div className="container-custom">
+        <AnimatedSection>
+          <div className="grid gap-10 md:grid-cols-2 items-center">
+            <div className="overflow-hidden rounded-lg shadow-lg">
+              <img src={fondateurImg} alt="Le fondateur de La Cave du Roi" className="h-full w-full object-cover" />
+            </div>
+            <div>
+              <h2 className="font-display text-3xl font-bold text-foreground md:text-4xl">Notre Histoire</h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                La Cave du Roi est née d'une passion pour la gastronomie béninoise authentique et les vins d'exception. 
+                Notre fondateur a créé un lieu unique où tradition culinaire et modernité se rencontrent pour offrir 
+                une expérience gustative inoubliable.
+              </p>
+              <p className="mt-3 text-muted-foreground leading-relaxed">
+                Dans un cadre chaleureux et élégant, nous vous accueillons pour déguster nos spécialités préparées 
+                avec soin et nos vins soigneusement sélectionnés.
+              </p>
+              <Link to="/contact" className="mt-6 inline-block">
+                <Button className="gap-2 gold-gradient text-accent-foreground font-semibold hover:opacity-90">
+                  Nous contacter <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </AnimatedSection>
+      </div>
+    </section>
+
+    {/* Terrasse */}
+    <section className="section-padding">
+      <div className="container-custom">
+        <AnimatedSection>
+          <div className="overflow-hidden rounded-lg shadow-lg">
+            <img src={terrasseImg} alt="Notre terrasse en soirée" className="h-72 w-full object-cover md:h-96" />
+          </div>
+          <p className="mt-4 text-center text-muted-foreground italic">Notre terrasse — un cadre unique pour vos soirées</p>
+        </AnimatedSection>
       </div>
     </section>
   </>
