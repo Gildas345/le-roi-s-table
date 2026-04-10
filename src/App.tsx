@@ -9,7 +9,7 @@ import Index from "./pages/Index";
 import Specialites from "./pages/Specialites";
 
 import Accompagnements from "./pages/Accompagnements";
-import Boissons from "./pages/Boissons";
+
 import CaveAVin from "./pages/CaveAVin";
 import Evenements from "./pages/Evenements";
 import Commande from "./pages/Commande";
@@ -36,7 +36,7 @@ const App = () => (
               <Route path="/specialites" element={<Specialites />} />
               
               <Route path="/accompagnements" element={<Accompagnements />} />
-              <Route path="/boissons" element={<Boissons />} />
+              
               <Route path="/cave-a-vin" element={<CaveAVin />} />
               <Route path="/evenements" element={<Evenements />} />
               <Route path="/commande" element={<Commande />} />

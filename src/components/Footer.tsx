@@ -16,7 +16,7 @@ const Footer = () => (
           <div className="mt-3 flex flex-col gap-2">
             {[
               { to: '/specialites', label: 'Nos Spécialités' },
-              { to: '/plats-rapides', label: 'Plats Rapides' },
+              { to: '/accompagnements', label: 'Accompagnements' },
               { to: '/cave-a-vin', label: 'Cave à Vin' },
               { to: '/evenements', label: 'Événements' },
               { to: '/contact', label: 'Contact' },

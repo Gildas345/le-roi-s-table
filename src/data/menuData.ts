@@ -13,10 +13,6 @@ import poissonSauceImg from '@/assets/poisson-sauce.jpg';
 import poissonFritAllocoImg from '@/assets/poisson-frit-alloco.jpg';
 import allocoPoissonImg from '@/assets/alloco-poisson.jpg';
 import amiwoImg from '@/assets/amiwo-poisson.jpg';
-import bissapImg from '@/assets/jus-bissap.jpg';
-import gingembreImg from '@/assets/jus-gingembre.jpg';
-import cocaImg from '@/assets/coca-cola.jpg';
-import eauImg from '@/assets/eau-minerale.jpg';
 import cavesRoyalesImg from '@/assets/caves-royales.jpg';
 import foiDuPapeImg from '@/assets/foi-du-pape.jpg';
 import domaineMajesteImg from '@/assets/domaine-majeste.jpg';
@@ -37,7 +33,7 @@ export interface MenuItem {
   description: string;
   price: number;
   image: string;
-  category: 'specialites' | 'accompagnements' | 'boissons' | 'vins';
+  category: 'specialites' | 'accompagnements' | 'vins';
   available: boolean;
   variants?: MenuVariant[];
 }
@@ -75,12 +71,6 @@ export const menuItems: MenuItem[] = [
   { id: 'a5', name: 'Amiwô (Pâte Rouge)', description: 'Pâte de maïs rouge à la tomate, servie avec poisson en sauce', price: 300, image: accompAmiworImg, category: 'accompagnements', available: true },
   { id: 'a6', name: 'Couscous', description: 'Couscous de maïs léger et moelleux', price: 300, image: couscousImg, category: 'accompagnements', available: true },
   { id: 'a7', name: 'Alloco', description: 'Bananes plantains frites dorées et croustillantes', price: 300, image: allocoOmeletteImg, category: 'accompagnements', available: true },
-
-  // BOISSONS
-  { id: 'b1', name: 'Jus de Bissap', description: 'Jus d\'hibiscus frais sucré naturellement', price: 500, image: bissapImg, category: 'boissons', available: true },
-  { id: 'b2', name: 'Jus de Gingembre', description: 'Boisson épicée au gingembre frais et citron', price: 500, image: gingembreImg, category: 'boissons', available: true },
-  { id: 'b3', name: 'Coca-Cola', description: 'Coca-Cola bien fraîche 33cl', price: 500, image: cocaImg, category: 'boissons', available: true },
-  { id: 'b4', name: 'Eau Minérale', description: 'Eau minérale naturelle 1.5L', price: 500, image: eauImg, category: 'boissons', available: true },
 
   // VINS
   { id: 'v1', name: 'Les Caves Royales', description: 'Bordeaux AOC 2020 — Vin rouge d\'exception, notes de fruits noirs et épices', price: 6000, image: cavesRoyalesImg, category: 'vins', available: true },

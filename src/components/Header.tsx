@@ -11,7 +11,6 @@ const navLinks = [
   { to: '/specialites', label: 'Nos Spécialités' },
   
   { to: '/accompagnements', label: 'Accompagnements' },
-  { to: '/boissons', label: 'Boissons' },
   { to: '/cave-a-vin', label: 'Cave à Vin' },
   { to: '/evenements', label: 'Événements' },
   { to: '/contact', label: 'Contact' },
