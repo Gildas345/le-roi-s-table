@@ -11,9 +11,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { amount, customer_name, customer_phone, order_id } = await req.json();
+    const { amount, customer_name, customer_phone, order_id, payment_mode } = await req.json();
 
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -25,6 +24,9 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Determine the callback URL for redirecting after payment
+    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
 
     // Create FedaPay transaction
     const response = await fetch('https://api.fedapay.com/v1/transactions', {
@@ -46,6 +48,7 @@ Deno.serve(async (req) => {
     });
 
     const data = await response.json();
+    console.log('FedaPay response:', JSON.stringify(data, null, 2));
 
     if (!response.ok) {
       console.error('FedaPay error:', data);
@@ -54,22 +57,30 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Generate payment token/URL
+    // Get transaction ID from response
     const transactionId = data.v1?.transaction?.id;
     let payment_url = null;
 
     if (transactionId) {
+      // Generate payment token/URL
       const tokenRes = await fetch(`https://api.fedapay.com/v1/transactions/${transactionId}/token`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}` },
       });
       const tokenData = await tokenRes.json();
-      payment_url = tokenData.url || `https://process.fedapay.com/${tokenData.token}`;
+      console.log('FedaPay token response:', JSON.stringify(tokenData, null, 2));
+      
+      const token = tokenData.token;
+      payment_url = token ? `https://process.fedapay.com/${token}` : tokenData.url;
 
-      // Update order with transaction ID and payment method
+      // Update order with transaction info
+      const paymentMethodLabel = payment_mode === 'mtn_money' ? 'MTN Mobile Money' 
+        : payment_mode === 'moov_money' ? 'Moov Mobile Money' 
+        : 'FedaPay';
+
       await supabase.from('orders').update({
-        transaction_id: transactionId,
-        payment_method: 'fedapay',
+        transaction_id: String(transactionId),
+        payment_method: paymentMethodLabel,
       }).eq('id', order_id);
     }
 
