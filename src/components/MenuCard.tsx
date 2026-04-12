@@ -72,15 +72,21 @@ const MenuCard: React.FC<{ item: MenuItem; index?: number }> = ({ item, index = 
         )}
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
-          <Button
-            size="sm"
-            onClick={handleAdd}
-            className="gap-1 bg-primary text-primary-foreground hover:bg-wine-light"
-          >
-            <Plus className="h-4 w-4" />
-            Ajouter
-          </Button>
+          {currentPrice > 0 ? (
+            <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
+          ) : (
+            <span />
+          )}
+          {currentPrice > 0 && (
+            <Button
+              size="sm"
+              onClick={handleAdd}
+              className="gap-1 bg-primary text-primary-foreground hover:bg-wine-light"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter
+            </Button>
+          )}
         </div>
       </div>
     </motion.div>
