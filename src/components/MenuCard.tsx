@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const MenuCard: React.FC<{ item: MenuItem; index?: number }> = ({ item, index = 0 }) => {
+const MenuCard: React.FC<{ item: MenuItem; index?: number; hidePrice?: boolean }> = ({ item, index = 0, hidePrice = false }) => {
   const { addItem } = useCart();
   const [selectedVariant, setSelectedVariant] = useState(0);
 
