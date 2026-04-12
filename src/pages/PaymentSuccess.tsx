@@ -1,10 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, Package, Clock, MapPin, Phone } from 'lucide-react';
+import { CheckCircle, Package, Clock, MapPin, Phone, Printer, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
+
+interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  menu_item_id: string;
+  menu_items?: { name: string } | null;
+}
 
 interface OrderDetails {
   id: string;
@@ -15,13 +23,17 @@ interface OrderDetails {
   total_price: number;
   status: string;
   payment_status: string;
+  payment_method: string | null;
   created_at: string;
+  transaction_id: string | null;
 }
 
 const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState<OrderDetails | null>(null);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const receiptRef = useRef<HTMLDivElement>(null);
   
   const orderId = searchParams.get('order_id');
   const transactionId = searchParams.get('transaction_id');
@@ -34,19 +46,29 @@ const PaymentSuccess = () => {
 
   const fetchOrder = async () => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single();
+      const [orderRes, itemsRes] = await Promise.all([
+        supabase.from('orders').select('*').eq('id', orderId).single(),
+        supabase.from('order_items').select('*, menu_items(name)').eq('order_id', orderId!),
+      ]);
 
-      if (error) throw error;
-      setOrder(data);
+      if (orderRes.error) throw orderRes.error;
+      setOrder(orderRes.data);
+      setOrderItems((itemsRes.data as any) || []);
     } catch (error) {
       console.error('Error fetching order:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    });
   };
 
   if (loading) {
@@ -59,97 +81,155 @@ const PaymentSuccess = () => {
 
   return (
     <>
-      <PageHeader title="Paiement Réussi" subtitle="Merci pour votre commande !" />
+      <PageHeader title="Commande Confirmée" subtitle="Merci pour votre commande !" />
       <section className="section-padding">
         <div className="container-custom max-w-2xl">
           <AnimatedSection>
-            <div className="rounded-lg border border-border bg-card p-8 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
+            {/* Success banner */}
+            <div className="rounded-lg border border-border bg-card p-6 text-center mb-6">
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
-              
               <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                Paiement confirmé !
+                {order?.payment_method === 'Espèces' ? 'Commande enregistrée !' : 'Paiement confirmé !'}
               </h2>
-              <p className="text-muted-foreground mb-6">
-                Votre commande a été enregistrée avec succès
+              <p className="text-muted-foreground">
+                {order?.payment_method === 'Espèces' 
+                  ? 'Vous paierez en espèces à la réception.' 
+                  : 'Votre paiement a été traité avec succès.'}
               </p>
+            </div>
 
-              {order && (
-                <div className="space-y-4 text-left bg-muted/50 rounded-lg p-6 mb-6">
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <span className="text-sm text-muted-foreground">Numéro de commande</span>
-                    <span className="font-mono font-semibold">#{order.id.slice(0, 8)}</span>
+            {/* Receipt */}
+            {order && (
+              <div ref={receiptRef} className="rounded-lg border border-border bg-card overflow-hidden print:shadow-none print:border-0">
+                {/* Receipt Header */}
+                <div className="bg-primary p-6 text-center text-primary-foreground print:bg-transparent print:text-foreground">
+                  <h3 className="font-display text-2xl font-bold">🍷 La Cave du Roi</h3>
+                  <p className="text-sm opacity-80 mt-1">Restaurant & Cave à Vin</p>
+                  <p className="text-xs opacity-60 mt-1">Cotonou, Bénin • +229 53 67 27 06</p>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  {/* Receipt Title */}
+                  <div className="text-center border-b border-dashed border-border pb-4">
+                    <h4 className="font-display text-lg font-bold text-foreground">REÇU DE COMMANDE</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {formatDate(order.created_at)}
+                    </p>
+                    <p className="font-mono text-sm text-muted-foreground mt-1">
+                      N° #{order.id.slice(0, 8).toUpperCase()}
+                    </p>
                   </div>
 
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <span className="text-sm text-muted-foreground">Montant payé</span>
-                    <span className="font-display text-xl font-bold text-accent">
+                  {/* Client info */}
+                  <div className="border-b border-dashed border-border pb-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Client</span>
+                      <span className="font-semibold text-foreground">{order.customer_name}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Téléphone</span>
+                      <span className="text-foreground">{order.phone}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Mode</span>
+                      <span className="text-foreground">{order.delivery_mode === 'livraison' ? '🚗 Livraison' : '🏠 Sur place'}</span>
+                    </div>
+                    {order.address && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Adresse</span>
+                        <span className="text-foreground text-right max-w-[60%]">{order.address}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Paiement</span>
+                      <span className="text-foreground">{order.payment_method || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {/* Order items */}
+                  {orderItems.length > 0 && (
+                    <div className="border-b border-dashed border-border pb-4">
+                      <h5 className="font-semibold text-foreground mb-3">Articles commandés</h5>
+                      <div className="space-y-2">
+                        {orderItems.map((item) => (
+                          <div key={item.id} className="flex justify-between text-sm">
+                            <span className="text-foreground">
+                              {(item as any).menu_items?.name || 'Article'} × {item.quantity}
+                            </span>
+                            <span className="font-semibold text-foreground">
+                              {(item.price * item.quantity).toLocaleString('fr-FR')} F
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Total */}
+                  <div className="flex justify-between items-center py-2">
+                    <span className="font-display text-lg font-bold text-foreground">TOTAL</span>
+                    <span className="font-display text-2xl font-bold text-accent">
                       {order.total_price.toLocaleString('fr-FR')} FCFA
                     </span>
                   </div>
 
-                  {transactionId && (
-                    <div className="flex items-center justify-between border-b border-border pb-3">
-                      <span className="text-sm text-muted-foreground">ID Transaction</span>
-                      <span className="font-mono text-sm">{transactionId.slice(0, 12)}...</span>
+                  {/* Transaction info */}
+                  {(order.transaction_id || transactionId) && (
+                    <div className="text-center border-t border-dashed border-border pt-4">
+                      <p className="text-xs text-muted-foreground">
+                        Transaction : {(order.transaction_id || transactionId)?.toString().slice(0, 16)}
+                      </p>
                     </div>
                   )}
 
-                  <div className="flex items-start gap-3 border-b border-border pb-3">
-                    <Package className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Statut</p>
-                      <p className="font-semibold">
-                        {order.status === 'en_attente' && '⏳ En attente'}
-                        {order.status === 'en_preparation' && '🍳 En préparation'}
+                  {/* Status */}
+                  <div className="text-center border-t border-dashed border-border pt-4">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-2 text-sm">
+                      <Package className="h-4 w-4" />
+                      <span>
+                        {order.status === 'en_attente' && '⏳ En attente de préparation'}
+                        {order.status === 'en_preparation' && '🍳 En cours de préparation'}
                         {order.status === 'livree' && '✅ Livrée'}
-                      </p>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-3 border-b border-border pb-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Livraison</p>
-                      <p className="font-semibold">
-                        {order.delivery_mode === 'livraison' ? '🚗 Livraison à domicile' : '🏠 À emporter'}
-                      </p>
-                      {order.address && <p className="text-sm text-muted-foreground mt-1">{order.address}</p>}
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm text-muted-foreground">Contact</p>
-                      <p className="font-semibold">{order.customer_name}</p>
-                      <p className="text-sm text-muted-foreground">{order.phone}</p>
-                    </div>
+                  {/* Footer */}
+                  <div className="text-center pt-2">
+                    <p className="text-xs text-muted-foreground">
+                      Merci de votre confiance ! 🙏
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      La Cave du Roi — L'excellence à chaque bouchée
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  <p className="text-blue-900">
-                    Nous préparons votre commande. Vous serez contacté sous peu !
-                  </p>
-                </div>
+            {/* Actions */}
+            <div className="mt-6 space-y-3 print:hidden">
+              <Button onClick={handlePrint} variant="outline" className="w-full gap-2">
+                <Printer className="h-4 w-4" />
+                Imprimer le reçu
+              </Button>
 
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link to="/" className="flex-1">
-                    <Button variant="outline" className="w-full">
-                      Retour à l'accueil
-                    </Button>
-                  </Link>
-                  <Link to="/specialites" className="flex-1">
-                    <Button className="w-full gold-gradient">
-                      Continuer mes achats
-                    </Button>
-                  </Link>
-                </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <Clock className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <p className="text-blue-900">
+                  Nous préparons votre commande. Vous serez contacté sous peu !
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to="/" className="flex-1">
+                  <Button variant="outline" className="w-full">Retour à l'accueil</Button>
+                </Link>
+                <Link to="/specialites" className="flex-1">
+                  <Button className="w-full gold-gradient">Continuer mes achats</Button>
+                </Link>
               </div>
             </div>
           </AnimatedSection>

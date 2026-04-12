@@ -26,6 +26,7 @@ const Commande = () => {
 
     let orderId = '';
     try {
+      // Create order
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -34,6 +35,10 @@ const Commande = () => {
           address: form.mode === 'livraison' ? form.address : null,
           delivery_mode: form.mode,
           total_price: totalPrice,
+          payment_method: paymentMethod === 'cash' ? 'Espèces' 
+            : paymentMethod === 'mtn_money' ? 'MTN Mobile Money'
+            : paymentMethod === 'moov_money' ? 'Moov Mobile Money'
+            : 'FedaPay',
         })
         .select('id')
         .single();
@@ -64,15 +69,6 @@ const Commande = () => {
         await supabase.from('order_items').insert(itemsToCreate);
       }
 
-      // Send notifications (email + SMS) - fire and forget
-      supabase.functions.invoke('send-email', {
-        body: { order_id: orderId, type: 'new_order' },
-      }).catch(err => console.warn('Email notification failed:', err));
-
-      supabase.functions.invoke('send-sms', {
-        body: { order_id: orderId, type: 'new_order', phone_number: form.phone },
-      }).catch(err => console.warn('SMS notification failed:', err));
-
       // Handle payment
       if (paymentMethod === 'cash') {
         toast.success('Commande enregistrée ! Paiement en espèces à la livraison.');
@@ -81,28 +77,24 @@ const Commande = () => {
         return;
       }
 
-      if (paymentMethod === 'fedapay') {
-        const { data: payData, error: payError } = await supabase.functions.invoke('fedapay-pay', {
-          body: { amount: totalPrice, customer_name: form.name, customer_phone: form.phone, order_id: orderId },
-        });
-        if (payError) throw payError;
-        if (payData?.payment_url) {
-          clearCart();
-          window.location.href = payData.payment_url;
-        } else {
-          toast.success('Commande enregistrée !');
-          clearCart();
-          navigate(`/payment-success?order_id=${orderId}`);
-        }
-      } else if (paymentMethod === 'mtn_money' || paymentMethod === 'moov_money') {
-        const { data: payData, error: payError } = await supabase.functions.invoke('mobile-money-pay', {
-          body: {
-            amount: totalPrice, customer_name: form.name, customer_phone: form.phone, order_id: orderId,
-            provider: paymentMethod === 'mtn_money' ? 'mtn' : 'moov',
-          },
-        });
-        if (payError) throw payError;
-        toast.success(payData?.message || 'Commande enregistrée !');
+      // All other payment methods go through FedaPay
+      const { data: payData, error: payError } = await supabase.functions.invoke('fedapay-pay', {
+        body: { 
+          amount: totalPrice, 
+          customer_name: form.name, 
+          customer_phone: form.phone, 
+          order_id: orderId,
+          payment_mode: paymentMethod,
+        },
+      });
+      
+      if (payError) throw payError;
+      
+      if (payData?.payment_url) {
+        clearCart();
+        window.location.href = payData.payment_url;
+      } else {
+        toast.success('Commande enregistrée !');
         clearCart();
         navigate(`/payment-success?order_id=${orderId}`);
       }
@@ -185,7 +177,7 @@ const Commande = () => {
                   <Label>Méthode de paiement</Label>
                   <div className="mt-3 grid grid-cols-2 gap-3">
                     {([
-                      { key: 'fedapay' as const, icon: CreditCard, label: 'Carte bancaire', sub: 'FedaPay' },
+                      { key: 'fedapay' as const, icon: CreditCard, label: 'Carte bancaire', sub: 'Visa / MasterCard' },
                       { key: 'mtn_money' as const, icon: Smartphone, label: 'MTN Money', sub: 'Mobile Money' },
                       { key: 'moov_money' as const, icon: Smartphone, label: 'Moov Money', sub: 'Mobile Money' },
                       { key: 'cash' as const, icon: Wallet, label: 'Espèces', sub: 'À la livraison' },
