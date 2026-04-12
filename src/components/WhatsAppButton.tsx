@@ -1,6 +1,14 @@
+const whatsappMessage = encodeURIComponent(
+  "🍽️ Bonjour La Cave du Roi ! 👋\n\n" +
+  "Je souhaite passer une commande 🛒✨\n\n" +
+  "Merci d'avance ! 🙏😊"
+);
+
+const whatsappUrl = `https://wa.me/22953672706?text=${whatsappMessage}`;
+
 const WhatsAppButton = () => (
   <a
-    href="https://wa.me/22953672706?text=Bonjour%20je%20veux%20commander"
+    href={whatsappUrl}
     target="_blank"
     rel="noopener noreferrer"
     className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-transform hover:scale-110"
@@ -8,7 +16,7 @@ const WhatsAppButton = () => (
     aria-label="Contacter sur WhatsApp"
     onClick={(e) => {
       e.stopPropagation();
-      window.open('https://wa.me/22953672706?text=Bonjour%20je%20veux%20commander', '_blank');
+      window.open(whatsappUrl, '_blank');
     }}
   >
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-7 w-7" fill="#fff">
