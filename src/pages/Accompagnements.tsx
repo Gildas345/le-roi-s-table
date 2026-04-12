@@ -9,7 +9,7 @@ const Accompagnements = () => {
       <PageHeader title="Accompagnements" subtitle="Complétez votre repas avec nos délicieux accompagnements" />
       <section className="section-padding">
         <div className="container-custom grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((item, i) => <MenuCard key={item.id} item={item} index={i} />)}
+          {items.map((item, i) => <MenuCard key={item.id} item={item} index={i} hidePrice />)}
         </div>
       </section>
     </>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { MenuItem } from '@/data/menuData';
@@ -12,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-const MenuCard: React.FC<{ item: MenuItem; index?: number }> = ({ item, index = 0 }) => {
+const MenuCard: React.FC<{ item: MenuItem; index?: number; hidePrice?: boolean }> = ({ item, index = 0, hidePrice = false }) => {
   const { addItem } = useCart();
   const [selectedVariant, setSelectedVariant] = useState(0);
 
@@ -72,11 +73,13 @@ const MenuCard: React.FC<{ item: MenuItem; index?: number }> = ({ item, index = 
         )}
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
+          {!hidePrice && (
+            <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
+          )}
           <Button
             size="sm"
             onClick={handleAdd}
-            className="gap-1 bg-primary text-primary-foreground hover:bg-wine-light"
+            className={cn("gap-1 bg-primary text-primary-foreground hover:bg-wine-light", hidePrice && "ml-auto")}
           >
             <Plus className="h-4 w-4" />
             Ajouter
