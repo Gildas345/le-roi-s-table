@@ -72,11 +72,13 @@ const MenuCard: React.FC<{ item: MenuItem; index?: number; hidePrice?: boolean }
         )}
 
         <div className="mt-4 flex items-center justify-between">
-          <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
+          {!hidePrice && (
+            <span className="font-display text-xl font-bold text-accent">{currentPrice.toLocaleString('fr-FR')} FCFA</span>
+          )}
           <Button
             size="sm"
             onClick={handleAdd}
-            className="gap-1 bg-primary text-primary-foreground hover:bg-wine-light"
+            className={cn("gap-1 bg-primary text-primary-foreground hover:bg-wine-light", hidePrice && "ml-auto")}
           >
             <Plus className="h-4 w-4" />
             Ajouter
