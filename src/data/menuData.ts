@@ -64,13 +64,13 @@ export const menuItems: MenuItem[] = [
   { id: 's10', name: 'Alloco au Poisson', description: 'Bananes plantains frites servies avec poisson frit et sauce piquante', price: 1500, image: allocoPoissonImg, category: 'specialites', available: true },
 
   // ACCOMPAGNEMENTS
-  { id: 'a1', name: 'Frites', description: 'Pommes de terre frites croustillantes et dorées', price: 300, image: fritesSaladeImg, category: 'accompagnements', available: true },
-  { id: 'a2', name: 'Riz Blanc', description: 'Riz basmati parfaitement cuit', price: 300, image: rizComposeImg, category: 'accompagnements', available: true },
-  { id: 'a3', name: 'Piron', description: 'Pâte de maïs traditionnelle', price: 200, image: pironImg, category: 'accompagnements', available: true },
-  { id: 'a4', name: 'Akassa', description: 'Pâte de maïs fermentée, accompagnement classique béninois', price: 200, image: accompAkassaImg, category: 'accompagnements', available: true },
-  { id: 'a5', name: 'Amiwô (Pâte Rouge)', description: 'Pâte de maïs rouge à la tomate, servie avec poisson en sauce', price: 300, image: accompAmiworImg, category: 'accompagnements', available: true },
-  { id: 'a6', name: 'Couscous', description: 'Couscous de maïs léger et moelleux', price: 300, image: couscousImg, category: 'accompagnements', available: true },
-  { id: 'a7', name: 'Alloco', description: 'Bananes plantains frites dorées et croustillantes', price: 300, image: allocoOmeletteImg, category: 'accompagnements', available: true },
+  { id: 'a1', name: 'Frites', description: 'Pommes de terre frites croustillantes et dorées', price: 0, image: fritesSaladeImg, category: 'accompagnements', available: true },
+  { id: 'a2', name: 'Riz Blanc', description: 'Riz basmati parfaitement cuit', price: 0, image: rizComposeImg, category: 'accompagnements', available: true },
+  { id: 'a3', name: 'Piron', description: 'Pâte de maïs traditionnelle', price: 0, image: pironImg, category: 'accompagnements', available: true },
+  { id: 'a4', name: 'Akassa', description: 'Pâte de maïs fermentée, accompagnement classique béninois', price: 0, image: accompAkassaImg, category: 'accompagnements', available: true },
+  { id: 'a5', name: 'Amiwô (Pâte Rouge)', description: 'Pâte de maïs rouge à la tomate, servie avec poisson en sauce', price: 0, image: accompAmiworImg, category: 'accompagnements', available: true },
+  { id: 'a6', name: 'Couscous', description: 'Couscous de maïs léger et moelleux', price: 0, image: couscousImg, category: 'accompagnements', available: true },
+  { id: 'a7', name: 'Alloco', description: 'Bananes plantains frites dorées et croustillantes', price: 0, image: allocoOmeletteImg, category: 'accompagnements', available: true },
 
   // VINS
   { id: 'v1', name: 'Les Caves Royales', description: 'Bordeaux AOC 2020 — Vin rouge d\'exception, notes de fruits noirs et épices', price: 6000, image: cavesRoyalesImg, category: 'vins', available: true },
