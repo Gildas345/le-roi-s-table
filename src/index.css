@@ -144,3 +144,9 @@
     color: hsl(var(--gold));
   }
 }
+
+@media print {
+  header, footer, nav, .print\\:hidden { display: none !important; }
+  body { background: white !important; }
+  .section-padding { padding: 0 !important; }
+}
