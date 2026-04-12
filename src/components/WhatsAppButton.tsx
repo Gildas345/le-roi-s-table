@@ -8,7 +8,7 @@ const WhatsAppButton = () => (
     aria-label="Contacter sur WhatsApp"
     onClick={(e) => {
       e.stopPropagation();
-      window.open('https://wa.me/22966303199?text=Bonjour%20je%20veux%20commander', '_blank');
+      window.open('https://wa.me/22953672706?text=Bonjour%20je%20veux%20commander', '_blank');
     }}
   >
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-7 w-7" fill="#fff">
