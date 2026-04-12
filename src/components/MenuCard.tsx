@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { MenuItem } from '@/data/menuData';
