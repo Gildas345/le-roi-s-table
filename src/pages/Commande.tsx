@@ -110,7 +110,16 @@ const Commande = () => {
       });
       
       if (payError) throw payError;
-      
+
+      // Mobile Money: push sent to phone, show waiting screen
+      if (payData?.mobile_money_push) {
+        clearCart();
+        toast.success('Demande envoyée sur votre téléphone !');
+        navigate(`/payment-pending?order_id=${orderId}&provider=${paymentMethod}&phone=${encodeURIComponent(form.phone)}`);
+        return;
+      }
+
+      // Card: redirect to FedaPay hosted page
       if (payData?.payment_url) {
         clearCart();
         window.location.href = payData.payment_url;
