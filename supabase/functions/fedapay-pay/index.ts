@@ -103,8 +103,10 @@ Deno.serve(async (req) => {
         }),
       });
 
-      const pushData = await pushRes.json();
-      console.log('FedaPay Mobile Money push:', JSON.stringify(pushData, null, 2));
+      const pushText = await pushRes.text();
+      let pushData: any = {};
+      try { pushData = pushText ? JSON.parse(pushText) : {}; } catch { pushData = { raw: pushText }; }
+      console.log('FedaPay Mobile Money push:', pushRes.status, JSON.stringify(pushData, null, 2));
 
       if (!pushRes.ok) {
         return new Response(JSON.stringify({
