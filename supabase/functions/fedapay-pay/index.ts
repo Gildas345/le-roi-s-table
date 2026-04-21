@@ -5,6 +5,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Normalize phone to local Benin format (8 digits) for FedaPay Mobile Money push
+const normalizeBeninPhone = (raw: string): string => {
+  const digits = (raw || '').replace(/\D/g, '');
+  // Remove country code 229 if present
+  if (digits.startsWith('229')) return digits.slice(3);
+  if (digits.startsWith('00229')) return digits.slice(5);
+  return digits;
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,11 +34,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Determine the callback URL for redirecting after payment
-    const origin = req.headers.get('origin') || req.headers.get('referer')?.replace(/\/[^/]*$/, '') || '';
+    const localPhone = normalizeBeninPhone(customer_phone);
+    const [firstname, ...rest] = (customer_name || 'Client').split(' ');
+    const lastname = rest.join(' ') || firstname;
 
-    // Create FedaPay transaction
-    const response = await fetch('https://api.fedapay.com/v1/transactions', {
+    // 1. Create transaction
+    const txRes = await fetch('https://api.fedapay.com/v1/transactions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`,
@@ -41,57 +51,95 @@ Deno.serve(async (req) => {
         currency: { iso: 'XOF' },
         callback_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/fedapay-webhook`,
         customer: {
-          firstname: customer_name,
-          phone_number: { number: customer_phone, country: 'bj' },
+          firstname,
+          lastname,
+          phone_number: { number: localPhone, country: 'bj' },
         },
       }),
     });
 
-    const data = await response.json();
-    console.log('FedaPay response:', JSON.stringify(data, null, 2));
+    const txData = await txRes.json();
+    console.log('FedaPay transaction:', JSON.stringify(txData, null, 2));
 
-    if (!response.ok) {
-      console.error('FedaPay error:', data);
-      return new Response(JSON.stringify({ error: 'Payment creation failed', details: data }), {
+    if (!txRes.ok) {
+      return new Response(JSON.stringify({ error: 'Transaction creation failed', details: txData }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Get transaction ID from response
-    const transactionId = data.v1?.transaction?.id;
-    let payment_url = null;
+    const transaction = txData['v1/transaction'] || txData.v1?.transaction;
+    const transactionId = transaction?.id;
 
-    if (transactionId) {
-      // Generate payment token/URL
-      const tokenRes = await fetch(`https://api.fedapay.com/v1/transactions/${transactionId}/token`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}` },
+    if (!transactionId) {
+      return new Response(JSON.stringify({ error: 'No transaction ID returned', details: txData }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      const tokenData = await tokenRes.json();
-      console.log('FedaPay token response:', JSON.stringify(tokenData, null, 2));
-      
-      const token = tokenData.token;
-      payment_url = token ? `https://process.fedapay.com/${token}` : tokenData.url;
-
-      // Update order with transaction info
-      const paymentMethodLabel = payment_mode === 'mtn_money' ? 'MTN Mobile Money' 
-        : payment_mode === 'moov_money' ? 'Moov Mobile Money' 
-        : 'FedaPay';
-
-      await supabase.from('orders').update({
-        transaction_id: String(transactionId),
-        payment_method: paymentMethodLabel,
-      }).eq('id', order_id);
     }
 
-    return new Response(JSON.stringify({ 
+    const paymentMethodLabel = payment_mode === 'mtn_money' ? 'MTN Mobile Money'
+      : payment_mode === 'moov_money' ? 'Moov Mobile Money'
+      : 'FedaPay';
+
+    await supabase.from('orders').update({
+      transaction_id: String(transactionId),
+      payment_method: paymentMethodLabel,
+    }).eq('id', order_id);
+
+    // 2. For Mobile Money: send push directly to phone (no redirection needed)
+    if (payment_mode === 'mtn_money' || payment_mode === 'moov_money') {
+      const sendNowEndpoint = payment_mode === 'mtn_money'
+        ? `https://api.fedapay.com/v1/transactions/${transactionId}/mtn`
+        : `https://api.fedapay.com/v1/transactions/${transactionId}/moov`;
+
+      const pushRes = await fetch(sendNowEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: transaction?.payment_token,
+          phone_number: { number: localPhone, country: 'bj' },
+        }),
+      });
+
+      const pushData = await pushRes.json();
+      console.log('FedaPay Mobile Money push:', JSON.stringify(pushData, null, 2));
+
+      if (!pushRes.ok) {
+        return new Response(JSON.stringify({
+          error: 'Mobile Money push failed',
+          message: pushData?.message || 'Échec de l\'envoi de la demande de paiement',
+          details: pushData,
+        }), {
+          status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        mobile_money_push: true,
+        transaction_id: transactionId,
+        message: 'Une demande de paiement a été envoyée à votre téléphone. Veuillez entrer votre code PIN pour confirmer.',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // 3. For card payment (FedaPay): generate hosted payment URL
+    let payment_url = transaction?.payment_url;
+    if (!payment_url && transaction?.payment_token) {
+      payment_url = `https://process.fedapay.com/${transaction.payment_token}`;
+    }
+
+    return new Response(JSON.stringify({
       success: true,
-      payment_url, 
-      transaction_id: transactionId 
+      payment_url,
+      transaction_id: transactionId,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
