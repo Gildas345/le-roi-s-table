@@ -23,6 +23,14 @@ const normalizeBeninPhone = (raw: string): string => {
 
 const maskPhone = (p: string) => p ? p.replace(/.(?=.{2})/g, '*') : '';
 
+const getFedapayEnvironment = (secretKey: string) =>
+  secretKey.includes('sandbox') ? 'sandbox' : 'live';
+
+const getFedapayBaseUrl = (secretKey: string) =>
+  getFedapayEnvironment(secretKey) === 'sandbox'
+    ? 'https://sandbox-api.fedapay.com/v1'
+    : 'https://api.fedapay.com/v1';
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -76,12 +84,23 @@ Deno.serve(async (req) => {
       });
     }
 
+    const fedapayEnvironment = getFedapayEnvironment(FEDAPAY_SECRET_KEY);
+    const fedapayBaseUrl = getFedapayBaseUrl(FEDAPAY_SECRET_KEY);
+
+    log('info', 'fedapay_config_detected', {
+      requestId,
+      environment: fedapayEnvironment,
+      apiKeyPrefix: FEDAPAY_SECRET_KEY.slice(0, 6),
+      apiKeyLength: FEDAPAY_SECRET_KEY.length,
+      baseUrl: fedapayBaseUrl,
+    });
+
     const localPhone = normalizeBeninPhone(customer_phone);
     const [firstname, ...rest] = (customer_name || 'Client').split(' ');
     const lastname = rest.join(' ') || firstname;
 
     // 1. Create transaction
-    const txRes = await fetch('https://api.fedapay.com/v1/transactions', {
+    const txRes = await fetch(`${fedapayBaseUrl}/transactions`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -116,6 +135,36 @@ Deno.serve(async (req) => {
 
     log('info', 'transaction_created', { requestId, orderId, transactionId });
 
+    // 2. Generate payment token used both for hosted checkout and Mobile Money push
+    const tokenRes = await fetch(`${fedapayBaseUrl}/transactions/${transactionId}/token`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}` },
+    });
+
+    const tokenText = await tokenRes.text();
+    let tokenData: any = {};
+    try { tokenData = tokenText ? JSON.parse(tokenText) : {}; } catch { tokenData = { raw: tokenText }; }
+
+    if (!tokenRes.ok || !tokenData?.token) {
+      await recordFailure('token_create', { status: tokenRes.status, transactionId, response: tokenData });
+      return new Response(JSON.stringify({
+        error: 'Payment token creation failed',
+        message: tokenData?.message || 'Impossible de préparer le paiement.',
+        details: tokenData,
+        requestId,
+      }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    const paymentToken = tokenData.token;
+
+    log('info', 'payment_token_created', {
+      requestId,
+      orderId,
+      transactionId,
+      hasPaymentUrl: Boolean(tokenData?.url),
+      tokenLength: String(paymentToken).length,
+    });
+
     const paymentMethodLabel = payment_mode === 'mtn_money' ? 'MTN Mobile Money'
       : payment_mode === 'moov_money' ? 'Moov Mobile Money'
       : 'FedaPay';
@@ -125,16 +174,25 @@ Deno.serve(async (req) => {
       payment_method: paymentMethodLabel,
     }).eq('id', order_id);
 
-    // 2. Mobile Money push — FedaPay uses /payments/{token}/{provider}
+    // 3. Mobile Money push — FedaPay uses POST /{mode} with a generated token
     if (payment_mode === 'mtn_money' || payment_mode === 'moov_money') {
-      const provider = payment_mode === 'mtn_money' ? 'mtn' : 'moov';
-      const sendNowEndpoint = `https://api.fedapay.com/v1/payments/${transaction?.payment_token}/${provider}`;
+      const provider = payment_mode === 'mtn_money' ? 'mtn_open' : 'moov';
+      const sendNowEndpoint = `${fedapayBaseUrl}/${provider}`;
+
+      log('info', 'mobile_money_push_request', {
+        requestId,
+        orderId,
+        transactionId,
+        provider,
+        endpoint: sendNowEndpoint,
+        phone_masked: maskPhone(localPhone),
+      });
 
       const pushRes = await fetch(sendNowEndpoint, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token: transaction?.payment_token,
+          token: paymentToken,
           phone_number: { number: localPhone, country: 'bj' },
         }),
       });
@@ -166,10 +224,10 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 3. Card payment URL
-    let payment_url = transaction?.payment_url;
-    if (!payment_url && transaction?.payment_token) {
-      payment_url = `https://process.fedapay.com/${transaction.payment_token}`;
+    // 4. Card payment URL
+    let payment_url = tokenData?.url || transaction?.payment_url;
+    if (!payment_url && paymentToken) {
+      payment_url = `https://process.fedapay.com/${paymentToken}`;
     }
 
     log('info', 'success', { requestId, orderId, mode: 'card', duration_ms: Date.now() - startedAt });
