@@ -125,11 +125,10 @@ Deno.serve(async (req) => {
       payment_method: paymentMethodLabel,
     }).eq('id', order_id);
 
-    // 2. Mobile Money push
+    // 2. Mobile Money push — FedaPay uses /payments/{token}/{provider}
     if (payment_mode === 'mtn_money' || payment_mode === 'moov_money') {
-      const sendNowEndpoint = payment_mode === 'mtn_money'
-        ? `https://api.fedapay.com/v1/transactions/${transactionId}/mtn`
-        : `https://api.fedapay.com/v1/transactions/${transactionId}/moov`;
+      const provider = payment_mode === 'mtn_money' ? 'mtn' : 'moov';
+      const sendNowEndpoint = `https://api.fedapay.com/v1/payments/${transaction?.payment_token}/${provider}`;
 
       const pushRes = await fetch(sendNowEndpoint, {
         method: 'POST',
