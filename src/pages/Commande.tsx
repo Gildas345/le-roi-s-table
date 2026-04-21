@@ -9,6 +9,16 @@ import AnimatedSection from '@/components/AnimatedSection';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type PaymentMethod = 'fedapay' | 'mtn_money' | 'moov_money' | 'cash';
 
@@ -18,10 +28,21 @@ const Commande = () => {
   const [form, setForm] = useState({ name: '', phone: '', address: '', mode: 'livraison' as 'livraison' | 'sur_place' });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('fedapay');
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const paymentLabel = paymentMethod === 'cash' ? 'Espèces à la livraison'
+    : paymentMethod === 'mtn_money' ? 'MTN Mobile Money'
+    : paymentMethod === 'moov_money' ? 'Moov Mobile Money'
+    : 'Carte bancaire (FedaPay)';
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) { toast.error('Votre panier est vide'); return; }
+    setConfirmOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    setConfirmOpen(false);
     setSubmitting(true);
 
     let orderId = '';
@@ -156,7 +177,7 @@ const Commande = () => {
           <div className="lg:col-span-2">
             <AnimatedSection delay={0.2}>
               <h2 className="font-display text-2xl font-semibold text-foreground">Informations</h2>
-              <form onSubmit={handleSubmit} className="mt-4 space-y-4 rounded-lg border border-border bg-card p-6">
+              <form onSubmit={handleFormSubmit} className="mt-4 space-y-4 rounded-lg border border-border bg-card p-6">
                 <div><Label htmlFor="name">Nom complet</Label><Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Votre nom" /></div>
                 <div><Label htmlFor="phone">Téléphone</Label><Input id="phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required placeholder="+229 XX XX XX XX" /></div>
                 <div>
@@ -200,6 +221,34 @@ const Commande = () => {
           </div>
         </div>
       </section>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer votre commande</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-2">
+                <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Articles</span><span className="font-medium text-foreground">{totalItems}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Mode</span><span className="font-medium text-foreground">{form.mode === 'livraison' ? '🚗 Livraison' : '🏠 Sur place'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Paiement</span><span className="font-medium text-foreground">{paymentLabel}</span></div>
+                  <div className="border-t border-border pt-2 mt-2 flex justify-between items-center">
+                    <span className="font-display text-base font-semibold text-foreground">Montant total</span>
+                    <span className="font-display text-xl font-bold text-accent">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">Confirmez-vous cette commande pour {form.name} ({form.phone}) ?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmit} disabled={submitting} className="gold-gradient text-accent-foreground">
+              {paymentMethod === 'cash' ? 'Confirmer la commande' : 'Confirmer et payer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
