@@ -9,6 +9,16 @@ import AnimatedSection from '@/components/AnimatedSection';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type PaymentMethod = 'fedapay' | 'mtn_money' | 'moov_money' | 'cash';
 
@@ -18,10 +28,21 @@ const Commande = () => {
   const [form, setForm] = useState({ name: '', phone: '', address: '', mode: 'livraison' as 'livraison' | 'sur_place' });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('fedapay');
   const [submitting, setSubmitting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const paymentLabel = paymentMethod === 'cash' ? 'Espèces à la livraison'
+    : paymentMethod === 'mtn_money' ? 'MTN Mobile Money'
+    : paymentMethod === 'moov_money' ? 'Moov Mobile Money'
+    : 'Carte bancaire (FedaPay)';
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) { toast.error('Votre panier est vide'); return; }
+    setConfirmOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    setConfirmOpen(false);
     setSubmitting(true);
 
     let orderId = '';
