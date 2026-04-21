@@ -221,6 +221,34 @@ const Commande = () => {
           </div>
         </div>
       </section>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer votre commande</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 pt-2">
+                <div className="rounded-lg bg-muted p-4 space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Articles</span><span className="font-medium text-foreground">{totalItems}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Mode</span><span className="font-medium text-foreground">{form.mode === 'livraison' ? '🚗 Livraison' : '🏠 Sur place'}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Paiement</span><span className="font-medium text-foreground">{paymentLabel}</span></div>
+                  <div className="border-t border-border pt-2 mt-2 flex justify-between items-center">
+                    <span className="font-display text-base font-semibold text-foreground">Montant total</span>
+                    <span className="font-display text-xl font-bold text-accent">{totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">Confirmez-vous cette commande pour {form.name} ({form.phone}) ?</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmit} disabled={submitting} className="gold-gradient text-accent-foreground">
+              {paymentMethod === 'cash' ? 'Confirmer la commande' : 'Confirmer et payer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };
