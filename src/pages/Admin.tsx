@@ -50,13 +50,53 @@ const Admin = () => {
 
     // Real-time orders
     const channel = supabase.channel('orders-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+        const newOrder = payload.new as Order;
+        toast.success(`🆕 Nouvelle commande de ${newOrder.customer_name}`, {
+          description: `${newOrder.total_price.toLocaleString('fr-FR')} FCFA`,
+        });
+        fetchOrders();
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (payload) => {
+        const newRow = payload.new as Order;
+        const oldRow = payload.old as Order;
+        if (oldRow.payment_status !== 'paye' && newRow.payment_status === 'paye') {
+          toast.success(`💰 Paiement reçu — ${newRow.customer_name}`, {
+            description: `${newRow.total_price.toLocaleString('fr-FR')} FCFA confirmés`,
+            duration: 8000,
+          });
+          // Notification sonore + navigateur
+          try {
+            new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ==').play().catch(() => {});
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('💰 Paiement reçu', { body: `${newRow.customer_name} — ${newRow.total_price.toLocaleString('fr-FR')} FCFA` });
+            }
+          } catch {}
+        }
+        fetchOrders();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'orders' }, () => {
         fetchOrders();
       })
       .subscribe();
 
+    // Demander permission de notif navigateur
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  const deleteOrder = async (id: string) => {
+    if (!confirm('Supprimer définitivement cette commande ?')) return;
+    // Supprimer d'abord les order_items, puis la commande
+    await supabase.from('order_items').delete().eq('order_id', id);
+    const { error } = await supabase.from('orders').delete().eq('id', id);
+    if (error) { toast.error('Erreur lors de la suppression'); return; }
+    toast.success('Commande supprimée');
+    fetchOrders();
+  };
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
