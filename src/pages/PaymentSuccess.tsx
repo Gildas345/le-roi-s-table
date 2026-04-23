@@ -231,6 +231,11 @@ const PaymentSuccess = () => {
 
             {/* Actions */}
             <div className="mt-6 space-y-3 print:hidden">
+              <Button onClick={handleWhatsApp} className="w-full gap-2 bg-[#25D366] text-white hover:bg-[#1ebe57]">
+                <MessageCircle className="h-4 w-4" />
+                Envoyer le reçu sur WhatsApp
+              </Button>
+
               <Button onClick={handlePrint} variant="outline" className="w-full gap-2">
                 <Printer className="h-4 w-4" />
                 Imprimer le reçu
