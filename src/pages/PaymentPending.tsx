@@ -38,52 +38,57 @@ const PaymentPending = () => {
     return () => clearInterval(interval);
   }, [status]);
 
-  // Realtime subscription + initial fetch + polling fallback
+  // Realtime subscription + initial fetch + active polling via FedaPay
   useEffect(() => {
     if (!orderId) return;
 
-    const checkOrder = async () => {
-      const { data } = await supabase
-        .from('orders')
-        .select('payment_status, notes')
-        .eq('id', orderId)
-        .single();
-
-      if (data?.payment_status === 'paye') {
+    const handleResult = (payment_status?: string, notes?: string | null) => {
+      if (payment_status === 'paye') {
         setStatus('paid');
-        setTimeout(() => navigate(`/payment-success?order_id=${orderId}`), 1500);
-      } else if (data?.notes?.toLowerCase().includes('refus')) {
+        setTimeout(() => navigate(`/payment-success?order_id=${orderId}`), 1200);
+        return true;
+      }
+      if (notes && (notes.toLowerCase().includes('refus') || notes.toLowerCase().includes('annul'))) {
         setStatus('declined');
-        setErrorMsg(data.notes);
-      } else if (data?.notes?.toLowerCase().includes('annul')) {
-        setStatus('declined');
-        setErrorMsg(data.notes);
+        setErrorMsg(notes);
+        return true;
+      }
+      return false;
+    };
+
+    // Active poll: ask edge function to check FedaPay directly
+    const checkOrder = async () => {
+      try {
+        const { data } = await supabase.functions.invoke('check-payment-status', {
+          body: { order_id: orderId },
+        });
+        if (data) handleResult(data.payment_status, data.notes);
+      } catch (e) {
+        // Fallback: read DB directly
+        const { data } = await supabase
+          .from('orders')
+          .select('payment_status, notes')
+          .eq('id', orderId)
+          .single();
+        if (data) handleResult(data.payment_status, data.notes);
       }
     };
 
     checkOrder();
 
+    // Realtime subscription (instant update if webhook fires)
     const channel = supabase
       .channel(`order-${orderId}`)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}`,
       }, (payload) => {
         const newRow = payload.new as any;
-        if (newRow.payment_status === 'paye') {
-          setStatus('paid');
-          setTimeout(() => navigate(`/payment-success?order_id=${orderId}`), 1500);
-        } else if (newRow.notes?.toLowerCase().includes('refus')) {
-          setStatus('declined');
-          setErrorMsg(newRow.notes);
-        } else if (newRow.notes?.toLowerCase().includes('annul')) {
-          setStatus('declined');
-          setErrorMsg(newRow.notes);
-        }
+        handleResult(newRow.payment_status, newRow.notes);
       })
       .subscribe();
 
-    // Polling fallback every 10s
-    const poll = setInterval(checkOrder, 10000);
+    // Active polling every 4s (faster, calls FedaPay)
+    const poll = setInterval(checkOrder, 4000);
 
     return () => {
       supabase.removeChannel(channel);

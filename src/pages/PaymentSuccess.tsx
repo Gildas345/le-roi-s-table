@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, Package, Clock, MapPin, Phone, Printer, Download } from 'lucide-react';
+import { CheckCircle, Package, Clock, MapPin, Phone, Printer, Download, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
+
+const RESTAURANT_WHATSAPP = '22953672706';
 
 interface OrderItem {
   id: string;
@@ -63,6 +65,24 @@ const PaymentSuccess = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleWhatsApp = () => {
+    if (!order) return;
+    const itemsText = orderItems
+      .map((it) => `- ${(it as any).menu_items?.name || 'Article'} × ${it.quantity} = ${(it.price * it.quantity).toLocaleString('fr-FR')} F`)
+      .join('\n');
+    const msg =
+      `🍷 *Nouvelle commande - La Cave du Roi*\n\n` +
+      `📋 N° #${order.id.slice(0, 8).toUpperCase()}\n` +
+      `👤 ${order.customer_name}\n` +
+      `📞 ${order.phone}\n` +
+      `${order.delivery_mode === 'livraison' ? `🚗 Livraison : ${order.address || ''}` : '🏠 Sur place'}\n` +
+      `💳 ${order.payment_method || 'N/A'}\n\n` +
+      `*Articles :*\n${itemsText}\n\n` +
+      `💰 *Total : ${order.total_price.toLocaleString('fr-FR')} FCFA*\n\n` +
+      `Statut paiement : ${order.payment_status === 'paye' ? '✅ Payé' : '⏳ En attente'}`;
+    window.open(`https://wa.me/${RESTAURANT_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
   const formatDate = (dateStr: string) => {
@@ -211,6 +231,11 @@ const PaymentSuccess = () => {
 
             {/* Actions */}
             <div className="mt-6 space-y-3 print:hidden">
+              <Button onClick={handleWhatsApp} className="w-full gap-2 bg-[#25D366] text-white hover:bg-[#1ebe57]">
+                <MessageCircle className="h-4 w-4" />
+                Envoyer le reçu sur WhatsApp
+              </Button>
+
               <Button onClick={handlePrint} variant="outline" className="w-full gap-2">
                 <Printer className="h-4 w-4" />
                 Imprimer le reçu
