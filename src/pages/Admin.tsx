@@ -166,7 +166,7 @@ const Admin = () => {
 
   // Events CRUD
   const saveEvent = async () => {
-    const payload = { name: eventForm.name, description: eventForm.description, date: eventForm.date, image_url: eventForm.image_url || null };
+    const payload = { name: eventForm.name, description: eventForm.description, date: eventForm.date, image_url: eventForm.image_url || null, active: true };
     if (editingEvent) {
       const { error } = await supabase.from('events').update(payload).eq('id', editingEvent);
       if (error) { toast.error('Erreur'); return; }
