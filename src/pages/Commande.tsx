@@ -23,6 +23,7 @@ import {
 type PaymentMethod = 'fedapay' | 'mtn_money' | 'moov_money' | 'cash';
 
 const Commande = () => {
+  const minimumOnlinePayment = 100;
   const navigate = useNavigate();
   const { items, updateQuantity, removeItem, totalPrice, clearCart, totalItems } = useCart();
   const [form, setForm] = useState({ name: '', phone: '', address: '', mode: 'livraison' as 'livraison' | 'sur_place' });
@@ -43,6 +44,12 @@ const Commande = () => {
 
   const handleSubmit = async () => {
     setConfirmOpen(false);
+
+    if (paymentMethod !== 'cash' && totalPrice < minimumOnlinePayment) {
+      toast.error(`Le montant minimum pour un paiement en ligne est de ${minimumOnlinePayment.toLocaleString('fr-FR')} FCFA.`);
+      return;
+    }
+
     setSubmitting(true);
 
     let orderId = '';
