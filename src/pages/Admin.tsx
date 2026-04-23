@@ -36,6 +36,12 @@ const Admin = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Filtres commandes
+  const [searchOrder, setSearchOrder] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPayment, setFilterPayment] = useState<string>('all');
+  const [filterDate, setFilterDate] = useState<string>('all');
+
   // Menu form
   const [menuForm, setMenuForm] = useState({ name: '', description: '', price: '', category: 'specialites', image_url: '' });
   const [editingMenu, setEditingMenu] = useState<string | null>(null);
