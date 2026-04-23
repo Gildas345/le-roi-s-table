@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff, FileText, Ticket } from 'lucide-react';
+import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff, FileText, Ticket, Search, CheckCircle2, Clock } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import OrderDetailsModal from '@/components/OrderDetailsModal';
 import AdvancedStats from '@/components/AdvancedStats';
