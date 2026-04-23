@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff, FileText, Ticket } from 'lucide-react';
+import { LogOut, Package, UtensilsCrossed, CalendarDays, BarChart3, Plus, Trash2, Edit, Eye, EyeOff, FileText, Ticket, Search, CheckCircle2, Clock } from 'lucide-react';
 import { Tables } from '@/integrations/supabase/types';
 import OrderDetailsModal from '@/components/OrderDetailsModal';
 import AdvancedStats from '@/components/AdvancedStats';
@@ -35,6 +35,12 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Filtres commandes
+  const [searchOrder, setSearchOrder] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterPayment, setFilterPayment] = useState<string>('all');
+  const [filterDate, setFilterDate] = useState<string>('all');
 
   // Menu form
   const [menuForm, setMenuForm] = useState({ name: '', description: '', price: '', category: 'specialites', image_url: '' });
@@ -224,11 +230,78 @@ const Admin = () => {
         </div>
 
         {/* Orders */}
-        {tab === 'orders' && (
+        {tab === 'orders' && (() => {
+          const now = new Date();
+          const filteredOrders = orders.filter((o) => {
+            const q = searchOrder.toLowerCase().trim();
+            if (q && !`${o.customer_name} ${o.phone} ${o.id}`.toLowerCase().includes(q)) return false;
+            if (filterStatus !== 'all' && o.status !== filterStatus) return false;
+            if (filterPayment !== 'all' && o.payment_status !== filterPayment) return false;
+            if (filterDate !== 'all') {
+              const d = new Date(o.created_at);
+              const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+              if (filterDate === 'today' && d.toDateString() !== now.toDateString()) return false;
+              if (filterDate === 'week' && diff > 7) return false;
+              if (filterDate === 'month' && diff > 30) return false;
+            }
+            return true;
+          });
+
+          return (
           <div className="space-y-3">
-            <h2 className="font-display text-xl font-semibold">Commandes ({orders.length})</h2>
-            {orders.map((order) => (
-              <div key={order.id} className="rounded-lg border border-border bg-card p-4">
+            <h2 className="font-display text-xl font-semibold">Commandes ({filteredOrders.length}/{orders.length})</h2>
+
+            <div className="rounded-lg border border-border bg-card p-3 space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  value={searchOrder}
+                  onChange={(e) => setSearchOrder(e.target.value)}
+                  placeholder="Rechercher par nom, téléphone ou n° commande..."
+                  className="pl-9"
+                />
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <div>
+                  <Label className="text-xs">Statut commande</Label>
+                  <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+                    <option value="all">Tous les statuts</option>
+                    <option value="en_attente">⏳ En attente</option>
+                    <option value="en_preparation">🍳 En préparation</option>
+                    <option value="livree">✅ Livrée</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Paiement</Label>
+                  <select value={filterPayment} onChange={(e) => setFilterPayment(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+                    <option value="all">Tous les paiements</option>
+                    <option value="paye">💰 Payé</option>
+                    <option value="en_attente">⏳ En attente</option>
+                    <option value="echec">❌ Échec</option>
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs">Période</Label>
+                  <select value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+                    <option value="all">Toutes</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">7 derniers jours</option>
+                    <option value="month">30 derniers jours</option>
+                  </select>
+                </div>
+              </div>
+              {(searchOrder || filterStatus !== 'all' || filterPayment !== 'all' || filterDate !== 'all') && (
+                <button
+                  onClick={() => { setSearchOrder(''); setFilterStatus('all'); setFilterPayment('all'); setFilterDate('all'); }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Réinitialiser les filtres
+                </button>
+              )}
+            </div>
+
+            {filteredOrders.map((order) => (
+              <div key={order.id} className={`rounded-lg border p-4 ${order.payment_status === 'paye' ? 'border-green-500/40 bg-green-50/30' : 'border-border bg-card'}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-semibold text-foreground">{order.customer_name}</p>
@@ -236,10 +309,20 @@ const Admin = () => {
                     {order.address && <p className="text-sm text-muted-foreground">📍 {order.address}</p>}
                     <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleString('fr-FR')}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right space-y-1">
                     <p className="font-display text-lg font-bold text-accent">{order.total_price.toLocaleString('fr-FR')} FCFA</p>
                     <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${statusColors[order.status]}`}>{statusLabels[order.status]}</span>
-                    <p className="text-xs mt-1">{order.payment_status === 'paye' ? '💰 Payé' : '⏳ Paiement en attente'}</p>
+                    <div>
+                      {order.payment_status === 'paye' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-600 px-2 py-1 text-xs font-bold text-white">
+                          <CheckCircle2 className="h-3 w-3" /> PAIEMENT CONFIRMÉ
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+                          <Clock className="h-3 w-3" /> Paiement en attente
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -265,9 +348,10 @@ const Admin = () => {
                 </div>
               </div>
             ))}
-            {orders.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune commande</p>}
+            {filteredOrders.length === 0 && <p className="text-center text-muted-foreground py-8">Aucune commande trouvée</p>}
           </div>
-        )}
+          );
+        })()}
 
         {/* Menu */}
         {tab === 'menu' && (
