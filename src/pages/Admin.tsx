@@ -255,6 +255,13 @@ const Admin = () => {
                     <FileText className="h-3 w-3" />
                     Détails
                   </button>
+                  <button
+                    onClick={() => deleteOrder(order.id)}
+                    className="rounded px-3 py-1 text-xs font-medium border border-destructive/40 text-destructive hover:bg-destructive/10 flex items-center gap-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Supprimer
+                  </button>
                 </div>
               </div>
             ))}
