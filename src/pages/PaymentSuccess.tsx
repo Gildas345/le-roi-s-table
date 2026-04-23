@@ -106,18 +106,26 @@ const PaymentSuccess = () => {
         <div className="container-custom max-w-2xl">
           <AnimatedSection>
             {/* Success banner */}
-            <div className="rounded-lg border border-border bg-card p-6 text-center mb-6">
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+            <div className={`rounded-lg border p-6 text-center mb-6 ${order?.payment_status === 'paye' ? 'border-green-500 bg-green-50' : 'border-border bg-card'}`}>
+              <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${order?.payment_status === 'paye' ? 'bg-green-600' : 'bg-green-100'}`}>
+                <CheckCircle className={`h-10 w-10 ${order?.payment_status === 'paye' ? 'text-white' : 'text-green-600'}`} />
               </div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                {order?.payment_method === 'Espèces' ? 'Commande enregistrée !' : 'Paiement confirmé !'}
+                {order?.payment_method === 'Espèces' ? 'Commande enregistrée !' : order?.payment_status === 'paye' ? '✅ Paiement confirmé !' : 'Commande enregistrée'}
               </h2>
               <p className="text-muted-foreground">
                 {order?.payment_method === 'Espèces' 
                   ? 'Vous paierez en espèces à la réception.' 
-                  : 'Votre paiement a été traité avec succès.'}
+                  : order?.payment_status === 'paye'
+                  ? 'Votre paiement a bien été reçu et traité avec succès.'
+                  : 'Votre paiement est en cours de vérification.'}
               </p>
+              {order?.payment_status === 'paye' && order?.payment_method !== 'Espèces' && (
+                <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white">
+                  <CheckCircle className="h-4 w-4" />
+                  PAIEMENT CONFIRMÉ
+                </div>
+              )}
             </div>
 
             {/* Receipt */}
