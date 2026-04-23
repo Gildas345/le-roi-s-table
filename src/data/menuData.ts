@@ -62,7 +62,6 @@ export const menuItems: MenuItem[] = [
   { id: 's8', name: 'Poisson Braisé en Sauce', description: 'Poisson entier braisé nappé de sauce tomate, oignons et piment frais', price: 2000, image: poissonSauceImg, category: 'specialites', available: true },
   { id: 's9', name: 'Poisson Frit & Alloco', description: 'Poisson frit croustillant accompagné d\'alloco doré et sauce tomate', price: 2000, image: poissonFritAllocoImg, category: 'specialites', available: true },
   { id: 's10', name: 'Alloco au Poisson', description: 'Bananes plantains frites servies avec poisson frit et sauce piquante', price: 1500, image: allocoPoissonImg, category: 'specialites', available: true },
-  { id: 't1', name: 'Test Plat', description: 'Plat de test à 100 FCFA pour vérification du système de paiement', price: 100, image: bomiwoImg, category: 'specialites', available: true },
 
   // ACCOMPAGNEMENTS
   { id: 'a1', name: 'Frites', description: 'Pommes de terre frites croustillantes et dorées', price: 300, image: fritesSaladeImg, category: 'accompagnements', available: true },
