@@ -4,7 +4,7 @@ const whatsappMessage = encodeURIComponent(
   "Merci d'avance ! 🙏😊"
 );
 
-const whatsappUrl = `https://wa.me/22953672706?text=${whatsappMessage}`;
+const whatsappUrl = `https://wa.me/22996854839?text=${whatsappMessage}`;
 
 const WhatsAppButton = () => {
   return (
