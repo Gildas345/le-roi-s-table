@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import AnimatedSection from '@/components/AnimatedSection';
 
-const RESTAURANT_WHATSAPP = '22953672706';
+const RESTAURANT_WHATSAPP = '22996854839';
 
 interface OrderItem {
   id: string;
