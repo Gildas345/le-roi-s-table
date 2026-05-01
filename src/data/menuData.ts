@@ -8,6 +8,7 @@ import poissonFraisFritesImg from '@/assets/poisson-frais-frites.jpg';
 import spaghettiOmeletteImg from '@/assets/spaghetti-omelette.jpg';
 import spaghettiImg from '@/assets/spaghetti.jpg';
 import chawarmaImg from '@/assets/chawarma.jpg';
+import gesiersImg from '@/assets/gesiers.jpg';
 
 // Accompagnements (réutilise les images existantes)
 import fritesSaladeImg from '@/assets/frites-salade.jpg';
@@ -54,7 +55,7 @@ export const menuItems: MenuItem[] = [
   ]},
   { id: 's4', name: 'Viande de Mouton', description: 'Brochettes de mouton grillées, tendres et épicées', price: 500, image: moutonImg, category: 'specialites', available: true },
   { id: 's5', name: 'Croupion de Dinde', description: 'Croupion de dinde braisé servi avec riz, frites et sauce tomate', price: 2000, image: croupionDindeImg, category: 'specialites', available: true },
-  { id: 's6', name: 'Brochette de Gésiers', description: 'Brochettes de gésiers grillées, croustillantes à l’extérieur, fondantes à l’intérieur', price: 500, image: moutonImg, category: 'specialites', available: true },
+  { id: 's6', name: 'Brochette de Gésiers', description: 'Brochettes de gésiers grillées, croustillantes à l’extérieur, fondantes à l’intérieur', price: 500, image: gesiersImg, category: 'specialites', available: true },
   { id: 's7', name: 'Poissons Frais', description: 'Poisson frais entier braisé ou frit, servi avec accompagnement au choix', price: 1500, image: poissonFraisFritesImg, category: 'specialites', available: true, variants: [
     { label: 'Format individuel', price: 1500 },
     { label: 'Format à partager', price: 3000 },
